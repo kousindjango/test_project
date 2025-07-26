@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>応用情報技術者試験 学習計画</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .metric-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #5a6fd8;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-small {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+        
+        .priority-high {
+            background-color: #fee;
+            color: #c53030;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .priority-medium {
+            background-color: #fffbeb;
+            color: #d69e2e;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .priority-low {
+            background-color: #f0fff4;
+            color: #38a169;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .status-studying {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .status-pending {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        
+        .subject-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .timer-display {
+            background: #2d3748;
+            color: #4fd1c7;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            margin-top: 4px;
+            text-align: center;
+            min-width: 80px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="card">
+            <h1>📚 応用情報技術者試験 学習計画</h1>
+            <p>学習終了: <strong>2024年10月5日</strong> | 試験日: <strong>2024年10月12日</strong></p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="overall-progress" style="width: 12%"></div>
+            </div>
+            <p>全体進捗: <span id="progress-text">12%</span></p>
+        </div>
+
+        <!-- データ管理 -->
+        <div class="card">
+            <h2>📊 データ管理</h2>
+            <div class="button-group">
+                <button class="btn btn-success" onclick="exportData()">📥 エクスポート</button>
+                <label class="btn btn-primary" style="cursor: pointer;">
+                    📤 インポート
+                    <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
+                </label>
+                <button class="btn btn-danger" onclick="if(confirm('データをリセットしますか？')){localStorage.clear();location.reload();}">🗑️ リセット</button>
+            </div>
+        </div>
+
+        <!-- キーメトリクス -->
+        <div class="card">
+            <h2>📈 学習状況</h2>
+            <div class="metrics">
+                <div class="metric-item">
+                    <div class="metric-number" id="completed-count">2</div>
+                    <div class="metric-label">完了科目数</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-number" id="studying-count">1</div>
+                    <div class="metric-label">学習中科目数</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-number" id="high-priority-count">4</div>
+                    <div class="metric-label">高優先度科目</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-number" id="remaining-days">72</div>
+                    <div class="metric-label">残り日数</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 学習スケジュール -->
+        <div class="card">
+            <h2>📅 学習スケジュール</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>科目</th>
+                            <th>フェーズ</th>
+                            <th>タイマー</th>
+                            <th>進捗時間</th>
+                            <th>残り/目標時間</th>
+                            <th>優先度</th>
+                            <th>状態・期間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule-body">
+                        <!-- JavaScriptで動的に生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 科目別詳細 -->
+        <div class="card">
+            <h2>📚 科目別学習状況</h2>
+            <div class="subject-grid" id="subjects-grid">
+                <!-- JavaScriptで動的に生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('アプリケーション開始');
+
+        // 学習データ（学習時間ベースの期間設定）
+        const initialData = {
+            subjects: [
+                { 
+                    id: 1, 
+                    name: "基礎理論", 
+                    priority: "中", 
+                    currentWeek: 3, 
+                    status: "完了", 
+                    examWeight: 8, 
+                    description: "数学、論理演算など",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-07-25", end: "2024-07-28", hours: 4 },
+                        { phase: "2週目:復習", start: "2024-07-29", end: "2024-07-30", hours: 3 },
+                        { phase: "3週目:午後対策", start: "2024-07-31", end: "2024-08-02", hours: 5 }
+                    ]
+                },
+                { 
+                    id: 2, 
+                    name: "アルゴリズムとプログラミング", 
+                    priority: "高", 
+                    currentWeek: 1, 
+                    status: "学習中", 
+                    examWeight: 12, 
+                    description: "データ構造、アルゴリズム設計",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-08-03", end: "2024-08-08", hours: 8 },
+                        { phase: "2週目:復習", start: "2024-08-09", end: "2024-08-12", hours: 5 },
+                        { phase: "3週目:午後対策", start: "2024-08-13", end: "2024-08-18", hours: 10 }
+                    ]
+                },
+                { 
+                    id: 3, 
+                    name: "データベース", 
+                    priority: "高", 
+                    currentWeek: 0, 
+                    status: "未開始", 
+                    examWeight: 15, 
+                    description: "関係データベース、SQL、正規化",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-08-19", end: "2024-08-25", hours: 10 },
+                        { phase: "2週目:復習", start: "2024-08-26", end: "2024-08-30", hours: 6 },
+                        { phase: "3週目:午後対策", start: "2024-08-31", end: "2024-09-06", hours: 12 }
+                    ]
+                },
+                { 
+                    id: 4, 
+                    name: "ネットワーク", 
+                    priority: "高", 
+                    currentWeek: 0, 
+                    status: "未開始", 
+                    examWeight: 12, 
+                    description: "TCP/IP、ルーティング、プロトコル",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-09-07", end: "2024-09-11", hours: 8 },
+                        { phase: "2週目:復習", start: "2024-09-12", end: "2024-09-15", hours: 5 },
+                        { phase: "3週目:午後対策", start: "2024-09-16", end: "2024-09-21", hours: 10 }
+                    ]
+                },
+                { 
+                    id: 5, 
+                    name: "セキュリティ", 
+                    priority: "高", 
+                    currentWeek: 0, 
+                    status: "未開始", 
+                    examWeight: 15, 
+                    description: "暗号化、認証、情報セキュリティ対策",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-09-22", end: "2024-09-26", hours: 10 },
+                        { phase: "2週目:復習", start: "2024-09-27", end: "2024-09-30", hours: 6 },
+                        { phase: "3週目:午後対策", start: "2024-10-01", end: "2024-10-05", hours: 12 }
+                    ]
+                },
+                { 
+                    id: 6, 
+                    name: "ハードウェアとコンピュータ構成要素", 
+                    priority: "中", 
+                    currentWeek: 0, 
+                    status: "未開始", 
+                    examWeight: 8, 
+                    description: "CPU、メモリ、入出力装置",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-08-19", end: "2024-08-21", hours: 4 },
+                        { phase: "2週目:復習", start: "2024-08-22", end: "2024-08-23", hours: 3 },
+                        { phase: "3週目:午後対策", start: "2024-08-24", end: "2024-08-26", hours: 5 }
+                    ]
+                },
+                { 
+                    id: 7, 
+                    name: "ソフトウェア", 
+                    priority: "中", 
+                    currentWeek: 0, 
+                    status: "未開始", 
+                    examWeight: 8, 
+                    description: "OS、ミドルウェア、ファイルシステム",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-08-27", end: "2024-08-29", hours: 4 },
+                        { phase: "2週目:復習", start: "2024-08-30", end: "2024-08-31", hours: 3 },
+                        { phase: "3週目:午後対策", start: "2024-09-01", end: "2024-09-03", hours: 5 }
+                    ]
+                },
+                { 
+                    id: 8, 
+                    name: "システム構成要素", 
+                    priority: "中", 
+                    currentWeek: 0, 
+                    status: "未開始", 
+                    examWeight: 6, 
+                    description: "システム性能、可用性",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-09-04", end: "2024-09-05", hours: 3 },
+                        { phase: "2週目:復習", start: "2024-09-06", end: "2024-09-07", hours: 2 },
+                        { phase: "3週目:午後対策", start: "2024-09-08", end: "2024-09-10", hours: 4 }
+                    ]
+                },
+                { 
+                    id: 9, 
+                    name: "システム開発技術", 
+                    priority: "中", 
+                    currentWeek: 0, 
+                    status: "未開始", 
+                    examWeight: 8, 
+                    description: "開発プロセス、テスト手法",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-09-11", end: "2024-09-13", hours: 4 },
+                        { phase: "2週目:復習", start: "2024-09-14", end: "2024-09-15", hours: 3 },
+                        { phase: "3週目:午後対策", start: "2024-09-16", end: "2024-09-18", hours: 5 }
+                    ]
+                },
+                { 
+                    id: 10, 
+                    name: "マネジメント", 
+                    priority: "低", 
+                    currentWeek: 0, 
+                    status: "未開始", 
+                    examWeight: 4, 
+                    description: "プロジェクト管理、品質管理",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-09-19", end: "2024-09-20", hours: 2 },
+                        { phase: "2週目:復習", start: "2024-09-21", end: "2024-09-21", hours: 1 },
+                        { phase: "3週目:午後対策", start: "2024-09-22", end: "2024-09-23", hours: 3 }
+                    ]
+                },
+                { 
+                    id: 11, 
+                    name: "ストラテジ", 
+                    priority: "低", 
+                    currentWeek: 0, 
+                    status: "未開始", 
+                    examWeight: 4, 
+                    description: "経営戦略、システム戦略",
+                    schedule: [
+                        { phase: "1週目:インプット", start: "2024-09-24", end: "2024-09-25", hours: 2 },
+                        { phase: "2週目:復習", start: "2024-09-26", end: "2024-09-26", hours: 1 },
+                        { phase: "3週目:午後対策", start: "2024-09-27", end: "2024-09-28", hours: 3 }
+                    ]
+                }
+            ]
+        };
+
+        // アプリケーション状態
+        let appState = {
+            subjects: [],
+            studyTimes: {},
+            activeTimer: null,
+            timerStart: null,
+            elapsedTime: 0
+        };
+
+        // データの保存と読み込み
+        function saveData() {
+            try {
+                localStorage.setItem('studySubjects', JSON.stringify(appState.subjects));
+                localStorage.setItem('studyTimes', JSON.stringify(appState.studyTimes));
+                console.log('データ保存完了');
+            } catch (e) {
+                console.error('データ保存失敗:', e);
+            }
+        }
+
+        function loadData() {
+            try {
+                const savedSubjects = localStorage.getItem('studySubjects');
+                const savedTimes = localStorage.getItem('studyTimes');
+                
+                appState.subjects = savedSubjects ? JSON.parse(savedSubjects) : initialData.subjects;
+                appState.studyTimes = savedTimes ? JSON.parse(savedTimes) : {};
+                
+                console.log('データ読み込み完了');
+            } catch (e) {
+                console.error('データ読み込み失敗:', e);
+                appState.subjects = initialData.subjects;
+                appState.studyTimes = {};
+            }
+        }
+
+        // 日付関連の関数
+        function getCurrentDate() {
+            return new Date();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
+        }
+
+        function isCurrentTask(startDate, endDate) {
+            if (!startDate || !endDate) return false;
+            const today = getCurrentDate();
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            return today >= start && today <= end;
+        }
+
+        function isOverdue(endDate) {
+            if (!endDate) return false;
+            const today = getCurrentDate();
+            const end = new Date(endDate);
+            return today > end;
+        }
+
+        // 科目進捗更新
+        function updateSubjectProgress(subjectId, newWeek) {
+            console.log('進捗更新:', subjectId, newWeek);
+            appState.subjects = appState.subjects.map(subject => {
+                if (subject.id === subjectId) {
+                    return {
+                        ...subject,
+                        currentWeek: newWeek,
+                        status: newWeek === 0 ? "未開始" : newWeek >= 3 ? "完了" : "学習中"
+                    };
+                }
+                return subject;
+            });
+            saveData();
+            renderApp();
+        }
+
+        // タイマー機能
+        function startTimer(taskId) {
+            console.log('タイマー操作:', taskId);
+            if (appState.activeTimer === taskId) {
+                // 停止
+                if (appState.timerStart) {
+                    const elapsedMinutes = (Date.now() - appState.timerStart) / 60000;
+                    appState.studyTimes[taskId] = (appState.studyTimes[taskId] || 0) + elapsedMinutes / 60;
+                    saveData();
+                }
+                appState.activeTimer = null;
+                appState.timerStart = null;
+                appState.elapsedTime = 0;
+            } else {
+                // 開始
+                appState.activeTimer = taskId;
+                appState.timerStart = Date.now();
+                appState.elapsedTime = 0;
+            }
+            renderApp();
+        }
+
+        function formatTimeHMS(milliseconds) {
+            const hours = Math.floor(milliseconds / 3600000);
+            const minutes = Math.floor((milliseconds % 3600000) / 60000);
+            const seconds = Math.floor((milliseconds % 60000) / 1000);
+            return hours + ':' + minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+        }
+
+        // データエクスポート
+        function exportData() {
+            try {
+                const data = {
+                    subjects: appState.subjects,
+                    studyTimes: appState.studyTimes,
+                    exportDate: new Date().toISOString()
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '学習進捗データ.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                console.log('エクスポート完了');
+            } catch (e) {
+                console.error('エクスポート失敗:', e);
+                alert('エクスポートに失敗しました');
+            }
+        }
+
+        // データインポート
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.subjects && data.studyTimes) {
+                        appState.subjects = data.subjects;
+                        appState.studyTimes = data.studyTimes;
+                        saveData();
+                        renderApp();
+                        alert('データを正常にインポートしました！');
+                        console.log('インポート完了');
+                    } else {
+                        alert('無効なデータファイルです');
+                    }
+                } catch (error) {
+                    console.error('インポート失敗:', error);
+                    alert('データの読み込みに失敗しました');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 画面描画
+        function renderApp() {
+            console.log('画面描画開始');
+            
+            try {
+                // 全体進捗計算
+                const totalWeeks = appState.subjects.length * 3;
+                const completedWeeks = appState.subjects.reduce((total, subject) => total + subject.currentWeek, 0);
+                const overallProgress = Math.round((completedWeeks / totalWeeks) * 100);
+
+                // 進捗バー更新
+                const progressBar = document.getElementById('overall-progress');
+                const progressText = document.getElementById('progress-text');
+                if (progressBar) {
+                    progressBar.style.width = overallProgress + '%';
+                }
+                if (progressText) {
+                    progressText.textContent = overallProgress + '%';
+                }
+
+                // メトリクス更新
+                const completedCount = document.getElementById('completed-count');
+                const studyingCount = document.getElementById('studying-count');
+                const highPriorityCount = document.getElementById('high-priority-count');
+                
+                if (completedCount) {
+                    completedCount.textContent = appState.subjects.filter(s => s.status === "完了").length;
+                }
+                if (studyingCount) {
+                    studyingCount.textContent = appState.subjects.filter(s => s.status === "学習中").length;
+                }
+                if (highPriorityCount) {
+                    highPriorityCount.textContent = appState.subjects.filter(s => s.priority === "高").length;
+                }
+
+                // 残り日数更新
+                const remainingDays = document.getElementById('remaining-days');
+                if (remainingDays) {
+                    const today = getCurrentDate();
+                    const studyEndDate = new Date('2024-10-05');
+                    const diffTime = studyEndDate - today;
+                    const days = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                    remainingDays.textContent = days;
+                }
+
+                // スケジュール表示を実行
+                renderScheduleTable();
+
+                // 科目カード表示を実行
+                renderSubjectCards();
+                
+                console.log('画面描画完了');
+                
+            } catch (error) {
+                console.error('画面描画エラー:', error);
+            }
+        }
+
+        // スケジュール表示を分離
+        function renderScheduleTable() {
+            const scheduleBody = document.getElementById('schedule-body');
+            if (!scheduleBody) {
+                console.error('schedule-body要素が見つかりません');
+                return;
+            }
+            
+            try {
+                scheduleBody.innerHTML = '';
+                console.log('スケジュール表示開始');
+                
+                appState.subjects.forEach((subject, subjectIndex) => {
+                    console.log('科目処理中:', subject.name);
+                    
+                    const phases = ["インプット", "復習", "午後対策"];
+                    
+                    for (let phaseIndex = 0; phaseIndex < phases.length; phaseIndex++) {
+                        try {
+                            const phase = phases[phaseIndex];
+                            const taskId = subject.name + '-' + (phaseIndex + 1);
+                            
+                            // デフォルト値を先に設定
+                            let startDate = '';
+                            let endDate = '';
+                            let phaseName = phase;
+                            let targetHours = subject.examWeight * 0.4;
+                            
+                            // スケジュール情報があれば上書き
+                            if (subject.schedule && Array.isArray(subject.schedule) && subject.schedule[phaseIndex]) {
+                                const scheduleInfo = subject.schedule[phaseIndex];
+                                if (scheduleInfo.start) startDate = scheduleInfo.start;
+                                if (scheduleInfo.end) endDate = scheduleInfo.end;
+                                if (scheduleInfo.phase) phaseName = scheduleInfo.phase;
+                                if (scheduleInfo.hours) targetHours = scheduleInfo.hours;
+                            }
+                            
+                            const studyTime = appState.studyTimes[taskId] || 0;
+                            const remainingHours = Math.max(0, targetHours - studyTime);
+                            
+                            // 現在のタスクかどうか判定
+                            let isCurrent = false;
+                            let isOverdueTask = false;
+                            
+                            if (startDate && endDate) {
+                                isCurrent = isCurrentTask(startDate, endDate);
+                                isOverdueTask = isOverdue(endDate);
+                            }
+                            
+                            // ステータス判定を修正
+                            let statusClass, statusText;
+                            if (subject.currentWeek > phaseIndex) {
+                                // 手動で完了マークされたタスク
+                                statusClass = 'status-completed';
+                                statusText = '完了';
+                            } else if (isOverdueTask) {
+                                // 期限を過ぎたタスク
+                                statusClass = 'status-pending';
+                                statusText = '期限超過';
+                            } else if (isCurrent) {
+                                // 現在実行中のタスク
+                                statusClass = 'status-studying';
+                                statusText = '進行中';
+                            } else {
+                                // まだ開始していないタスク
+                                statusClass = 'status-pending';
+                                statusText = '未完了';
+                            }
+                            
+                            const priorityClass = 'priority-' + (subject.priority === "高" ? 'high' : subject.priority === "中" ? 'medium' : 'low');
+                            
+                            // 行作成
+                            const row = document.createElement('tr');
+                            
+                            // 行の背景色を設定
+                            if (isCurrent) {
+                                row.style.backgroundColor = '#fff3cd'; // 進行中は黄色
+                            } else if (isOverdueTask && subject.currentWeek <= phaseIndex) {
+                                row.style.backgroundColor = '#f8d7da'; // 期限超過は赤色
+                            } else if (subject.currentWeek > phaseIndex) {
+                                row.style.backgroundColor = '#d4edda'; // 完了は緑色
+                            }
+                            
+                            const isTimerActive = appState.activeTimer === taskId;
+                            const timerButtonClass = isTimerActive ? 'btn-danger' : 'btn-success';
+                            const timerButtonText = isTimerActive ? '停止' : '開始';
+                            const timerDisplay = isTimerActive ? `<div class="timer-display">${formatTimeHMS(appState.elapsedTime)}</div>` : '';
+                            
+                            const dateRange = (startDate && endDate) ? `<br><small style="color: #666;">${formatDate(startDate)}～${formatDate(endDate)}</small>` : '';
+                            
+                            row.innerHTML = `
+                                <td>${subject.name}</td>
+                                <td>${phaseName}</td>
+                                <td>
+                                    <button class="btn btn-small ${timerButtonClass}" onclick="startTimer('${taskId}')">
+                                        ${timerButtonText}
+                                    </button>
+                                    ${timerDisplay}
+                                </td>
+                                <td><strong style="color: #667eea;">${studyTime.toFixed(1)}h</strong></td>
+                                <td><strong style="color: #dc3545;">${remainingHours.toFixed(1)}h</strong> / ${targetHours}h</td>
+                                <td><span class="${priorityClass}">${subject.priority}</span></td>
+                                <td>
+                                    <span class="${statusClass}">${statusText}</span>
+                                    ${dateRange}
+                                </td>
+                            `;
+                            
+                            scheduleBody.appendChild(row);
+                            
+                        } catch (rowError) {
+                            console.error('行作成エラー:', rowError, subject.name, phaseIndex);
+                        }
+                    }
+                });
+                
+                console.log('スケジュール表示完了');
+                
+            } catch (error) {
+                console.error('スケジュール表示エラー:', error);
+                scheduleBody.innerHTML = '<tr><td colspan="7">スケジュールの表示でエラーが発生しました</td></tr>';
+            }
+        }
+
+        // 科目カード表示を分離
+        function renderSubjectCards() {
+            const subjectsGrid = document.getElementById('subjects-grid');
+            if (!subjectsGrid) {
+                console.error('subjects-grid要素が見つかりません');
+                return;
+            }
+            
+            try {
+                subjectsGrid.innerHTML = '';
+                
+                appState.subjects.forEach(subject => {
+                    const card = document.createElement('div');
+                    card.className = 'subject-card';
+                    
+                    const priorityClass = 'priority-' + (subject.priority === "高" ? 'high' : subject.priority === "中" ? 'medium' : 'low');
+                    const progressPercent = Math.round((subject.currentWeek / 3) * 100);
+                    
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 style="margin: 0;">${subject.name}</h3>
+                            <span class="${priorityClass}">${subject.priority}</span>
+                        </div>
+                        <p style="color: #666; font-size: 14px; margin-bottom: 10px;">${subject.description}</p>
+                        <p style="font-size: 14px; margin-bottom: 10px;">配点: <strong>${subject.examWeight}%</strong></p>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>進捗</span>
+                                <span><strong>${progressPercent}%</strong></span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-small ${subject.currentWeek >= 1 ? 'btn-success' : 'btn-primary'}" 
+                                    onclick="updateSubjectProgress(${subject.id}, 1)">
+                                ${subject.currentWeek >= 1 ? '✓' : ''} 完了
+                            </button>
+                            <button class="btn btn-small ${subject.currentWeek >= 2 ? 'btn-success' : 'btn-primary'}" 
+                                    onclick="updateSubjectProgress(${subject.id}, 2)">
+                                ${subject.currentWeek >= 2 ? '✓' : ''} 2週目
+                            </button>
+                            <button class="btn btn-small ${subject.currentWeek >= 3 ? 'btn-success' : 'btn-primary'}" 
+                                    onclick="updateSubjectProgress(${subject.id}, 3)">
+                                ${subject.currentWeek >= 3 ? '✓' : ''} 3週目
+                            </button>
+                        </div>
+                    `;
+                    
+                    subjectsGrid.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('科目カード表示エラー:', error);
+                subjectsGrid.innerHTML = '<div>科目の表示でエラーが発生しました</div>';
+            }
+        }
+
+        // タイマー更新
+        function updateTimer() {
+            if (appState.activeTimer && appState.timerStart) {
+                appState.elapsedTime = Date.now() - appState.timerStart;
+                renderApp();
+            }
+        }
+
+        // 初期化
+        function init() {
+            console.log('アプリケーション初期化開始');
+            
+            try {
+                loadData();
+                console.log('データ読み込み完了, 科目数:', appState.subjects.length);
+                
+                renderApp();
+                console.log('初回描画完了');
+                
+                // タイマー更新を1秒ごとに実行
+                setInterval(updateTimer, 1000);
+                
+                console.log('初期化完了');
+            } catch (error) {
+                console.error('初期化エラー:', error);
+                
+                // エラー時のフォールバック表示
+                const appElement = document.getElementById('app');
+                if (appElement) {
+                    appElement.innerHTML = `
+                        <div style="padding: 20px; background: white; margin: 20px; border-radius: 8px;">
+                            <h2>エラーが発生しました</h2>
+                            <p>ページを再読み込みしてください。</p>
+                            <button onclick="location.reload()">再読み込み</button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // ページ読み込み完了後に初期化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
