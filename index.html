@@ -1,0 +1,692 @@
+import React, { useState, useMemo } from 'react';
+import { 
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, 
+  CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+} from 'recharts';
+import { Calendar, CheckCircle, AlertCircle, BookOpen, Target, Clock, TrendingUp } from 'lucide-react';
+
+// 現在の日付を2024年7月25日として設定
+const getCurrentDate = () => new Date('2024-07-25');
+const getExamDate = () => new Date('2024-10-12');
+const getStudyEndDate = () => new Date('2024-10-05');
+
+// 学習データ（得点効率と重要度を考慮）
+const studyData = {
+  examName: "応用情報技術者試験",
+  examDate: "2024-10-12",
+  subjects: [
+    { 
+      id: 1, 
+      name: "基礎理論", 
+      priority: "中", 
+      difficulty: 3, 
+      examWeight: 8, 
+      weeks: 3,
+      currentWeek: 3,
+      status: "完了",
+      description: "数学、論理演算など"
+    },
+    { 
+      id: 2, 
+      name: "アルゴリズムとプログラミング", 
+      priority: "高", 
+      difficulty: 4, 
+      examWeight: 12, 
+      weeks: 3,
+      currentWeek: 1,
+      status: "学習中",
+      description: "データ構造、アルゴリズム設計"
+    },
+    { 
+      id: 3, 
+      name: "ハードウェアとコンピュータ構成要素", 
+      priority: "中", 
+      difficulty: 2, 
+      examWeight: 8, 
+      weeks: 3,
+      currentWeek: 0,
+      status: "未開始",
+      description: "CPU、メモリ、入出力装置"
+    },
+    { 
+      id: 4, 
+      name: "システム構成要素", 
+      priority: "中", 
+      difficulty: 2, 
+      examWeight: 6, 
+      weeks: 3,
+      currentWeek: 0,
+      status: "未開始",
+      description: "システム性能、可用性"
+    },
+    { 
+      id: 5, 
+      name: "ソフトウェア", 
+      priority: "中", 
+      difficulty: 3, 
+      examWeight: 8, 
+      weeks: 3,
+      currentWeek: 0,
+      status: "未開始",
+      description: "OS、ミドルウェア、ファイルシステム"
+    },
+    { 
+      id: 6, 
+      name: "データベース", 
+      priority: "高", 
+      difficulty: 4, 
+      examWeight: 15, 
+      weeks: 3,
+      currentWeek: 0,
+      status: "未開始",
+      description: "関係データベース、SQL、正規化"
+    },
+    { 
+      id: 7, 
+      name: "ネットワーク", 
+      priority: "高", 
+      difficulty: 3, 
+      examWeight: 12, 
+      weeks: 3,
+      currentWeek: 0,
+      status: "未開始",
+      description: "TCP/IP、ルーティング、プロトコル"
+    },
+    { 
+      id: 8, 
+      name: "セキュリティ", 
+      priority: "高", 
+      difficulty: 3, 
+      examWeight: 15, 
+      weeks: 3,
+      currentWeek: 0,
+      status: "未開始",
+      description: "暗号化、認証、情報セキュリティ対策"
+    },
+    { 
+      id: 9, 
+      name: "システム開発技術", 
+      priority: "中", 
+      difficulty: 2, 
+      examWeight: 8, 
+      weeks: 3,
+      currentWeek: 0,
+      status: "未開始",
+      description: "開発プロセス、テスト手法"
+    },
+    { 
+      id: 10, 
+      name: "マネジメント", 
+      priority: "低", 
+      difficulty: 2, 
+      examWeight: 4, 
+      weeks: 3,
+      currentWeek: 0,
+      status: "未開始",
+      description: "プロジェクト管理、品質管理"
+    },
+    { 
+      id: 11, 
+      name: "ストラテジ", 
+      priority: "低", 
+      difficulty: 2, 
+      examWeight: 4, 
+      weeks: 3,
+      currentWeek: 0,
+      status: "未開始",
+      description: "経営戦略、システム戦略"
+    }
+  ],
+  phases: [
+    { name: "1週目: インプット", description: "基礎知識の習得" },
+    { name: "2週目: 復習", description: "理解の定着と問題演習" },
+    { name: "3週目: 午後試験対策", description: "応用問題と記述対策" }
+  ]
+};
+
+const StudyPlanDashboard = () => {
+  const [subjects, setSubjects] = useState(studyData.subjects);
+  const [filter, setFilter] = useState({ priority: "", status: "" });
+  const [activeTimer, setActiveTimer] = useState(null);
+  const [timerStart, setTimerStart] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [studyTimes, setStudyTimes] = useState({});
+
+  // タイマー更新
+  React.useEffect(() => {
+    let interval;
+    if (activeTimer && timerStart) {
+      interval = setInterval(() => {
+        setElapsedTime(Date.now() - timerStart);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [activeTimer, timerStart]);
+
+  // 現在の日付から学習終了日までの残り日数を計算
+  const daysUntilStudyEnd = useMemo(() => {
+    const today = getCurrentDate();
+    const studyEndDate = getStudyEndDate();
+    const diffTime = studyEndDate - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }, []);
+
+  const daysUntilExam = useMemo(() => {
+    const today = getCurrentDate();
+    const examDate = getExamDate();
+    const diffTime = examDate - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }, []);
+
+  // 利用可能な学習週数を計算（10月5日まで）
+  const availableWeeks = Math.floor(daysUntilStudyEnd / 7);
+  const totalRequiredWeeks = 11 * 3; // 11科目 × 3週間 = 33週間
+  const compressionRatio = availableWeeks / totalRequiredWeeks;
+
+  // 全体の進捗計算
+  const overallProgress = useMemo(() => {
+    const totalWeeks = subjects.length * 3; // 各科目3週間
+    const completedWeeks = subjects.reduce((total, subject) => total + subject.currentWeek, 0);
+    return Math.round((completedWeeks / totalWeeks) * 100);
+  }, [subjects]);
+
+  // 優先度別の科目数
+  const priorityDistribution = useMemo(() => {
+    const distribution = { "高": 0, "中": 0, "低": 0 };
+    subjects.forEach(subject => {
+      distribution[subject.priority]++;
+    });
+    return Object.entries(distribution).map(([priority, count]) => ({
+      name: priority,
+      value: count,
+      color: priority === "高" ? "#ef4444" : priority === "中" ? "#f59e0b" : "#22c55e"
+    }));
+  }, [subjects]);
+
+  // 得点効率順のランキング
+  const efficiencyRanking = useMemo(() => {
+    return [...subjects]
+      .sort((a, b) => (b.examWeight / b.difficulty) - (a.examWeight / a.difficulty))
+      .slice(0, 5)
+      .map((subject, index) => ({
+        ...subject,
+        rank: index + 1,
+        efficiency: Math.round((subject.examWeight / subject.difficulty) * 10) / 10
+      }));
+  }, [subjects]);
+
+  // 学習スケジュール（10月5日完了に向けた時間圧縮スケジュール）
+  const optimizedSchedule = useMemo(() => {
+    const schedule = [];
+    let currentWeek = 1;
+    
+    // 指定された科目順序
+    const subjectOrder = [
+      "基礎理論",
+      "アルゴリズムとプログラミング", 
+      "ハードウェアとコンピュータ構成要素",
+      "システム構成要素",
+      "ソフトウェア",
+      "データベース",
+      "ネットワーク",
+      "セキュリティ",
+      "システム開発技術",
+      "マネジメント",
+      "ストラテジ"
+    ];
+
+    // 科目順にソート
+    const sortedSubjects = subjectOrder.map(subjectName => 
+      subjects.find(s => s.name === subjectName)
+    ).filter(Boolean);
+
+    // 時間圧縮による学習スケジュール（全科目3フェーズ維持）
+    const phaseNames = ["インプット", "復習", "午後対策"];
+    // 圧縮率を適用した時間重みづけ
+    const studyTimeWeights = [
+      0.7 * compressionRatio,  // インプット: 大幅圧縮
+      0.4 * compressionRatio,  // 復習: さらに圧縮
+      0.8 * compressionRatio   // 午後対策: 比較的維持
+    ];
+
+    // 各フェーズごとに全科目を実行
+    for (let phase = 1; phase <= 3; phase++) {
+      sortedSubjects.forEach(subject => {
+        const baseHours = subject.examWeight * 2; // 基本学習時間（配点×2時間）
+        const adjustedHours = Math.max(
+          Math.round(baseHours * studyTimeWeights[phase - 1]),
+          phase === 1 ? 4 : 2 // 最低学習時間の保証
+        );
+        
+        // 10月5日完了に向けた週数調整
+        const totalTasksNeeded = 33; // 11科目 × 3フェーズ
+        const weeksAvailable = Math.floor(daysUntilStudyEnd / 7);
+        const adjustedWeek = Math.min(currentWeek, weeksAvailable);
+        
+        // 開始日と終了日を計算（10月5日以内に収まるよう調整）
+        const daysPerTask = Math.floor(daysUntilStudyEnd / totalTasksNeeded);
+        const startDate = new Date(2024, 6, 25 + (currentWeek - 1) * daysPerTask);
+        const endDate = new Date(2024, 6, 25 + currentWeek * daysPerTask - 1);
+        
+        // 10月5日を超えないよう調整
+        const studyEndDate = getStudyEndDate();
+        const actualEndDate = endDate > studyEndDate ? studyEndDate : endDate;
+        
+        const taskId = `${subject.name}-${phase}`;
+        const actualStudyTime = studyTimes[taskId] || 0;
+        const remainingTime = Math.max(0, Math.min(adjustedHours, 35) - actualStudyTime);
+        
+        // ステータス判定の修正
+        let status;
+        if (subject.currentWeek > phase) {
+          status = "完了";
+        } else if (subject.currentWeek === phase) {
+          status = actualEndDate < new Date() ? "完了" : "進行中";
+        } else {
+          status = startDate <= new Date() && new Date() <= actualEndDate ? "進行中" : "予定";
+        }
+        
+        schedule.push({
+          id: taskId,
+          week: currentWeek,
+          subject: subject.name,
+          phase: `${phase}週目: ${phaseNames[phase - 1]}`,
+          priority: subject.priority,
+          studyHours: Math.min(adjustedHours, 35), // 週35時間上限
+          actualStudyTime: actualStudyTime,
+          remainingTime: remainingTime,
+          originalHours: Math.round(baseHours * [1.0, 0.8, 1.2][phase - 1]),
+          efficiency: Math.round((subject.examWeight / subject.difficulty) * 10) / 10,
+          status: status,
+          startDate: startDate.toLocaleDateString('ja-JP'),
+          endDate: actualEndDate.toLocaleDateString('ja-JP'),
+          compressionRatio: Math.round(studyTimeWeights[phase - 1] / [1.0, 0.8, 1.2][phase - 1] * 100)
+        });
+        currentWeek++;
+      });
+    }
+
+    return schedule;
+  }, [subjects, compressionRatio, studyTimes, daysUntilStudyEnd]);
+
+  // フィルタリング
+  const filteredSubjects = useMemo(() => {
+    return subjects.filter(subject => {
+      return (
+        (filter.priority === "" || subject.priority === filter.priority) &&
+        (filter.status === "" || subject.status === filter.status)
+      );
+    });
+  }, [subjects, filter]);
+
+  const updateSubjectProgress = (subjectId, newWeek) => {
+    setSubjects(prev => prev.map(subject => 
+      subject.id === subjectId 
+        ? { 
+            ...subject, 
+            currentWeek: newWeek,
+            status: newWeek === 0 ? "未開始" : newWeek >= 1 ? "完了" : "学習中"
+          }
+        : subject
+    ));
+  };
+
+  // タイマー機能
+  const startTimer = (taskId) => {
+    if (activeTimer === taskId) {
+      // タイマー停止
+      if (timerStart) {
+        const totalTime = Math.floor((Date.now() - timerStart) / 60000); // 分単位
+        setStudyTimes(prev => ({
+          ...prev,
+          [taskId]: (prev[taskId] || 0) + totalTime/60 // 時間単位で保存
+        }));
+      }
+      setActiveTimer(null);
+      setTimerStart(null);
+      setElapsedTime(0);
+    } else {
+      // タイマー開始
+      setActiveTimer(taskId);
+      setTimerStart(Date.now());
+      setElapsedTime(0);
+    }
+  };
+
+  const formatTime = (milliseconds) => {
+    const minutes = Math.floor(milliseconds / 60000);
+    const seconds = Math.floor((milliseconds % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatHours = (hours) => {
+    return Math.round(hours * 10) / 10;
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+      {/* ヘッダー */}
+      <div className="bg-white rounded-xl shadow-lg border border-blue-200 p-6 mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+              <BookOpen className="w-8 h-8 mr-3 text-blue-600" />
+              {studyData.examName} 学習計画
+            </h1>
+            <p className="text-gray-600 mt-2">学習終了: 2024年10月5日 (残り{daysUntilStudyEnd}日) | 試験日: {studyData.examDate} (残り{daysUntilExam}日)</p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-blue-600">{overallProgress}%</div>
+            <div className="text-sm text-gray-500">全体進捗</div>
+          </div>
+        </div>
+      </div>
+
+      {/* フィルターコントロール */}
+      <div className="bg-white rounded-xl shadow-lg border border-blue-200 p-4 mb-8">
+        <div className="flex flex-wrap gap-4">
+          <select 
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={filter.priority}
+            onChange={(e) => setFilter({...filter, priority: e.target.value})}
+          >
+            <option value="">全ての優先度</option>
+            <option value="高">高優先度</option>
+            <option value="中">中優先度</option>
+            <option value="低">低優先度</option>
+          </select>
+          
+          <select 
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={filter.status}
+            onChange={(e) => setFilter({...filter, status: e.target.value})}
+          >
+            <option value="">全てのステータス</option>
+            <option value="完了">完了</option>
+            <option value="学習中">学習中</option>
+            <option value="未開始">未開始</option>
+          </select>
+        </div>
+      </div>
+
+      {/* キーメトリクス */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-xl shadow-lg border border-green-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">完了科目数</h3>
+            <CheckCircle className="w-5 h-5 text-green-500" />
+          </div>
+          <div className="text-2xl font-bold text-gray-800">
+            {subjects.filter(s => s.status === "完了").length}
+          </div>
+          <div className="text-sm text-gray-500">/ {subjects.length} 科目</div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-blue-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">学習中科目数</h3>
+            <Target className="w-5 h-5 text-blue-500" />
+          </div>
+          <div className="text-2xl font-bold text-gray-800">
+            {subjects.filter(s => s.status === "学習中").length}
+          </div>
+          <div className="text-sm text-gray-500">進行中</div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-orange-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">高優先度科目</h3>
+            <AlertCircle className="w-5 h-5 text-orange-500" />
+          </div>
+          <div className="text-2xl font-bold text-gray-800">
+            {subjects.filter(s => s.priority === "高").length}
+          </div>
+          <div className="text-sm text-gray-500">重点科目</div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-purple-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">学習終了まで</h3>
+            <Clock className="w-5 h-5 text-purple-500" />
+          </div>
+          <div className="text-2xl font-bold text-gray-800">{daysUntilStudyEnd}</div>
+          <div className="text-sm text-gray-500">日（10月5日まで）</div>
+        </div>
+      </div>
+
+      {/* 得点効率ランキング */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="bg-white rounded-xl shadow-lg border border-blue-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <TrendingUp className="w-5 h-5 mr-2 text-green-500" />
+            得点効率ランキング TOP5
+          </h2>
+          <div className="space-y-3">
+            {efficiencyRanking.map(subject => (
+              <div key={subject.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center mr-3">
+                    {subject.rank}
+                  </span>
+                  <div>
+                    <h4 className="font-medium text-gray-800">{subject.name}</h4>
+                    <p className="text-sm text-gray-500">配点: {subject.examWeight}% / 難易度: {subject.difficulty}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-green-600">{subject.efficiency}</div>
+                  <div className="text-xs text-gray-500">効率値</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-blue-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">優先度分布</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={priorityDistribution}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                dataKey="value"
+                label={({name, value}) => `${name}: ${value}`}
+              >
+                {priorityDistribution.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* 学習スケジュール */}
+      <div className="bg-white rounded-xl shadow-lg border border-blue-200 p-6 mb-8">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">学習スケジュール（10月5日完了目標 - 時間圧縮版）</h2>
+        
+        {/* 時間圧縮の説明 */}
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="font-semibold text-blue-800 mb-2">⏰ 学習時間圧縮システム</h3>
+          <div className="text-sm text-blue-700">
+            <p>• 利用可能週数: {availableWeeks}週 / 標準必要週数: {totalRequiredWeeks}週</p>
+            <p>• <strong>全科目3フェーズ実施</strong>（科目削減なし）</p>
+            <p>• 圧縮率: {Math.round(compressionRatio * 100)}% - 学習時間を効率化して短縮</p>
+            <p>• 週間上限: 35時間（平日5時間、土日7.5時間想定）</p>
+          </div>
+        </div>
+
+        <div className="mb-4 p-4 bg-green-50 rounded-lg">
+          <h3 className="font-semibold text-green-800 mb-2">時間圧縮の重みづけ</h3>
+          <div className="text-sm text-green-700 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p><strong>1週目（インプット）</strong></p>
+              <p>通常→圧縮: 約{Math.round(0.7 * compressionRatio * 100)}%</p>
+              <p>重要ポイントに絞った学習</p>
+            </div>
+            <div>
+              <p><strong>2週目（復習）</strong></p>
+              <p>通常→圧縮: 約{Math.round(0.4 * compressionRatio * 100)}%</p>
+              <p>問題演習中心の効率学習</p>
+            </div>
+            <div>
+              <p><strong>3週目（午後対策）</strong></p>
+              <p>通常→圧縮: 約{Math.round(0.8 * compressionRatio * 100)}%</p>
+              <p>実戦形式で比較的時間確保</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 px-4">週</th>
+                <th className="text-left py-2 px-4">科目</th>
+                <th className="text-left py-2 px-4">フェーズ</th>
+                <th className="text-left py-2 px-4">学習タイマー</th>
+                <th className="text-left py-2 px-4">進捗時間</th>
+                <th className="text-left py-2 px-4">残り時間</th>
+                <th className="text-left py-2 px-4">目標時間</th>
+                <th className="text-left py-2 px-4">優先度</th>
+                <th className="text-left py-2 px-4">期間</th>
+                <th className="text-left py-2 px-4">ステータス</th>
+              </tr>
+            </thead>
+            <tbody>
+              {optimizedSchedule.map((item, index) => (
+                <tr key={index} className={`border-b ${
+                  item.status === "完了" ? "bg-green-50" : 
+                  item.status === "進行中" ? "bg-blue-50" : ""
+                }`}>
+                  <td className="py-2 px-4 font-medium">{item.week}</td>
+                  <td className="py-2 px-4">{item.subject}</td>
+                  <td className="py-2 px-4">{item.phase}</td>
+                  <td className="py-2 px-4">
+                    <div className="flex flex-col items-center gap-1">
+                      <button
+                        onClick={() => startTimer(item.id)}
+                        className={`px-3 py-1 text-xs rounded-full font-medium ${
+                          activeTimer === item.id 
+                            ? "bg-red-500 text-white" 
+                            : "bg-green-500 text-white hover:bg-green-600"
+                        }`}
+                        disabled={item.status === "完了"}
+                      >
+                        {activeTimer === item.id ? "停止" : "開始"}
+                      </button>
+                      {activeTimer === item.id && (
+                        <div className="text-xs text-blue-600 font-mono">
+                          {formatTime(elapsedTime)}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-2 px-4 font-medium text-blue-600">
+                    {formatHours(item.actualStudyTime)}h
+                  </td>
+                  <td className="py-2 px-4 font-medium text-orange-600">
+                    {formatHours(item.remainingTime)}h
+                  </td>
+                  <td className="py-2 px-4 font-medium text-purple-600">{item.studyHours}h</td>
+                  <td className="py-2 px-4">
+                    <span className={`px-2 py-1 text-xs rounded ${
+                      item.priority === "高" ? "bg-red-100 text-red-800" :
+                      item.priority === "中" ? "bg-yellow-100 text-yellow-800" :
+                      "bg-green-100 text-green-800"
+                    }`}>
+                      {item.priority}
+                    </span>
+                  </td>
+                  <td className="py-2 px-4 text-gray-600 text-xs">{item.startDate} - {item.endDate}</td>
+                  <td className="py-2 px-4">
+                    <span className={`px-2 py-1 text-xs rounded ${
+                      item.status === "完了" ? "bg-green-100 text-green-800" :
+                      item.status === "進行中" ? "bg-blue-100 text-blue-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* 学習完了日の表示 */}
+        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h3 className="font-semibold text-green-800">📅 学習スケジュール概要</h3>
+          <div className="text-sm text-green-700 mt-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p><strong>全学習完了:</strong> 2024年10月5日</p>
+              <p><strong>総学習週数:</strong> {optimizedSchedule.length}週間</p>
+            </div>
+            <div>
+              <p><strong>試験日:</strong> 2024年10月12日</p>
+              <p><strong>最終復習期間:</strong> 1週間確保</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 科目別詳細 */}
+      <div className="bg-white rounded-xl shadow-lg border border-blue-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">科目別学習状況</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredSubjects.map(subject => (
+            <div key={subject.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-gray-800">{subject.name}</h3>
+                <span className={`px-2 py-1 text-xs rounded ${
+                  subject.priority === "高" ? "bg-red-100 text-red-800" :
+                  subject.priority === "中" ? "bg-yellow-100 text-yellow-800" :
+                  "bg-green-100 text-green-800"
+                }`}>
+                  {subject.priority}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">{subject.description}</p>
+              <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                <span>配点: {subject.examWeight}%</span>
+                <span>難易度: {subject.difficulty}/5</span>
+              </div>
+              <div className="mb-3">
+                <div className="flex justify-between text-sm mb-1">
+                  <span>進捗</span>
+                  <span>{Math.round((subject.currentWeek / 3) * 100)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full"
+                    style={{width: `${(subject.currentWeek / 3) * 100}%`}}
+                  ></div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {[1, 2, 3].map(week => (
+                  <button
+                    key={week}
+                    onClick={() => updateSubjectProgress(subject.id, week)}
+                    className={`flex-1 py-1 px-2 text-xs rounded ${
+                      subject.currentWeek >= week 
+                        ? "bg-green-500 text-white" 
+                        : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                    }`}
+                  >
+                    {week === 1 ? "完了" : `${week}週目`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default StudyPlanDashboard;
