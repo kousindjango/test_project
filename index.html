@@ -164,14 +164,6 @@
             font-size: 12px;
         }
         
-        .status-studying {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        
         .status-pending {
             background-color: #f8f9fa;
             color: #6c757d;
@@ -540,21 +532,6 @@
             return date.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
         }
 
-        function isCurrentTask(startDate, endDate) {
-            if (!startDate || !endDate) return false;
-            const today = getCurrentDate();
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            return today >= start && today <= end;
-        }
-
-        function isOverdue(endDate) {
-            if (!endDate) return false;
-            const today = getCurrentDate();
-            const end = new Date(endDate);
-            return today > end;
-        }
-
         // 科目進捗更新
         function updateSubjectProgress(subjectId, newWeek) {
             console.log('進捗更新:', subjectId, newWeek);
@@ -563,7 +540,7 @@
                     return {
                         ...subject,
                         currentWeek: newWeek,
-                        status: newWeek === 0 ? "未開始" : newWeek >= 3 ? "完了" : "学習中"
+                        status: newWeek >= 3 ? "完了" : "学習中"
                     };
                 }
                 return subject;
@@ -748,31 +725,14 @@
                             const studyTime = appState.studyTimes[taskId] || 0;
                             const remainingHours = Math.max(0, targetHours - studyTime);
                             
-                            // 現在のタスクかどうか判定
-                            let isCurrent = false;
-                            let isOverdueTask = false;
-                            
-                            if (startDate && endDate) {
-                                isCurrent = isCurrentTask(startDate, endDate);
-                                isOverdueTask = isOverdue(endDate);
-                            }
-                            
-                            // ステータス判定を修正
+                            // ステータス判定を簡素化
                             let statusClass, statusText;
                             if (subject.currentWeek > phaseIndex) {
                                 // 手動で完了マークされたタスク
                                 statusClass = 'status-completed';
                                 statusText = '完了';
-                            } else if (isOverdueTask) {
-                                // 期限を過ぎたタスク
-                                statusClass = 'status-pending';
-                                statusText = '期限超過';
-                            } else if (isCurrent) {
-                                // 現在実行中のタスク
-                                statusClass = 'status-studying';
-                                statusText = '進行中';
                             } else {
-                                // まだ開始していないタスク
+                                // 未完了のタスク
                                 statusClass = 'status-pending';
                                 statusText = '未完了';
                             }
@@ -781,15 +741,6 @@
                             
                             // 行作成
                             const row = document.createElement('tr');
-                            
-                            // 行の背景色を設定
-                            if (isCurrent) {
-                                row.style.backgroundColor = '#fff3cd'; // 進行中は黄色
-                            } else if (isOverdueTask && subject.currentWeek <= phaseIndex) {
-                                row.style.backgroundColor = '#f8d7da'; // 期限超過は赤色
-                            } else if (subject.currentWeek > phaseIndex) {
-                                row.style.backgroundColor = '#d4edda'; // 完了は緑色
-                            }
                             
                             const isTimerActive = appState.activeTimer === taskId;
                             const timerButtonClass = isTimerActive ? 'btn-danger' : 'btn-success';
@@ -940,3 +891,5 @@
     </script>
 </body>
 </html>
+                            
+                
