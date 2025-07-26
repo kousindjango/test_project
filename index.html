@@ -303,13 +303,13 @@
             <h2>📅 学習スケジュール</h2>
             <div style="overflow-x: auto;">
                 <table>
-                                            <thead>
+                    <thead>
                         <tr>
                             <th>科目</th>
                             <th>フェーズ</th>
                             <th>タイマー</th>
                             <th>進捗時間</th>
-                            <th>残り時間</th>
+                            <th>残り/目標時間</th>
                             <th>優先度</th>
                             <th>状態・期間</th>
                         </tr>
@@ -529,6 +529,32 @@
             }
         }
 
+        // 日付関連の関数
+        function getCurrentDate() {
+            return new Date();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
+        }
+
+        function isCurrentTask(startDate, endDate) {
+            if (!startDate || !endDate) return false;
+            const today = getCurrentDate();
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            return today >= start && today <= end;
+        }
+
+        function isOverdue(endDate) {
+            if (!endDate) return false;
+            const today = getCurrentDate();
+            const end = new Date(endDate);
+            return today > end;
+        }
+
         // 科目進捗更新
         function updateSubjectProgress(subjectId, newWeek) {
             console.log('進捗更新:', subjectId, newWeek);
@@ -568,44 +594,14 @@
             renderApp();
         }
 
-        // 日付関連の関数
-        function getCurrentDate() {
-            return new Date();
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
-        }
-
-        function isCurrentTask(startDate, endDate) {
-            if (!startDate || !endDate) return false;
-            const today = getCurrentDate();
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            return today >= start && today <= end;
-        }
-
-        function isOverdue(endDate) {
-            if (!endDate) return false;
-            const today = getCurrentDate();
-            const end = new Date(endDate);
-            return today > end;
-        }
-
-        function formatTime(milliseconds) {
-            const minutes = Math.floor(milliseconds / 60000);
-            const seconds = Math.floor((milliseconds % 60000) / 1000);
-            return minutes + ':' + seconds.toString().padStart(2, '0');
-        }
-
         function formatTimeHMS(milliseconds) {
             const hours = Math.floor(milliseconds / 3600000);
             const minutes = Math.floor((milliseconds % 3600000) / 60000);
             const seconds = Math.floor((milliseconds % 60000) / 1000);
             return hours + ':' + minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
         }
+
+        // データエクスポート
         function exportData() {
             try {
                 const data = {
@@ -658,109 +654,193 @@
         function renderApp() {
             console.log('画面描画開始');
             
-            // 全体進捗計算
-            const totalWeeks = appState.subjects.length * 3;
-            const completedWeeks = appState.subjects.reduce((total, subject) => total + subject.currentWeek, 0);
-            const overallProgress = Math.round((completedWeeks / totalWeeks) * 100);
+            try {
+                // 全体進捗計算
+                const totalWeeks = appState.subjects.length * 3;
+                const completedWeeks = appState.subjects.reduce((total, subject) => total + subject.currentWeek, 0);
+                const overallProgress = Math.round((completedWeeks / totalWeeks) * 100);
 
-            // 進捗バー更新
-            const progressBar = document.getElementById('overall-progress');
-            const progressText = document.getElementById('progress-text');
-            if (progressBar && progressText) {
-                progressBar.style.width = overallProgress + '%';
-                progressText.textContent = overallProgress + '%';
-            }
+                // 進捗バー更新
+                const progressBar = document.getElementById('overall-progress');
+                const progressText = document.getElementById('progress-text');
+                if (progressBar) {
+                    progressBar.style.width = overallProgress + '%';
+                }
+                if (progressText) {
+                    progressText.textContent = overallProgress + '%';
+                }
 
-            // メトリクス更新
-            const completedCount = document.getElementById('completed-count');
-            const studyingCount = document.getElementById('studying-count');
-            const highPriorityCount = document.getElementById('high-priority-count');
-            
-            if (completedCount) completedCount.textContent = appState.subjects.filter(s => s.status === "完了").length;
-            if (studyingCount) studyingCount.textContent = appState.subjects.filter(s => s.status === "学習中").length;
-            const remainingDays = document.getElementById('remaining-days');
-            if (remainingDays) {
-                const today = getCurrentDate();
-                const studyEndDate = new Date('2024-10-05');
-                const diffTime = studyEndDate - today;
-                const days = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-                remainingDays.textContent = days;
-            }
-
-            // スケジュール表示
-            const scheduleBody = document.getElementById('schedule-body');
-            if (scheduleBody) {
-                scheduleBody.innerHTML = '';
+                // メトリクス更新
+                const completedCount = document.getElementById('completed-count');
+                const studyingCount = document.getElementById('studying-count');
+                const highPriorityCount = document.getElementById('high-priority-count');
                 
-                appState.subjects.forEach(subject => {
-                    const phases = ["インプット", "復習", "午後対策"];
-                    phases.forEach((phase, phaseIndex) => {
-                        const taskId = subject.name + '-' + (phaseIndex + 1);
-                        const studyTime = appState.studyTimes[taskId] || 0;
-                        const targetHours = subject.examWeight * 0.4;
-                        const remainingHours = Math.max(0, targetHours - studyTime);
-                        
-                        // スケジュール情報取得
-                        const scheduleInfo = subject.schedule && subject.schedule[phaseIndex] ? subject.schedule[phaseIndex] : null;
-                        const startDate = scheduleInfo ? scheduleInfo.start : '';
-                        const endDate = scheduleInfo ? scheduleInfo.end : '';
-                        const phaseName = scheduleInfo ? scheduleInfo.phase : phase;
-                        
-                        const row = document.createElement('tr');
-                        
-                        // 現在のタスクかどうか判定
-                        const isCurrent = scheduleInfo && isCurrentTask(startDate, endDate);
-                        const isOverdueTask = scheduleInfo && isOverdue(endDate);
-                        
-                        // ステータス判定
-                        let statusClass, statusText;
-                        if (subject.currentWeek > phaseIndex) {
-                            statusClass = 'status-completed';
-                            statusText = '完了';
-                        } else if (isCurrent) {
-                            statusClass = 'status-studying';
-                            statusText = '進行中';
-                        } else if (isOverdueTask) {
-                            statusClass = 'status-pending';
-                            statusText = '期限超過';
-                        } else {
-                            statusClass = 'status-pending';
-                            statusText = '予定';
-                        }
-                        
-                        const priorityClass = 'priority-' + (subject.priority === "高" ? 'high' : subject.priority === "中" ? 'medium' : 'low');
-                        
-                        // 行の背景色
-                        const rowStyle = isCurrent ? 'background-color: #fff3cd;' : isOverdueTask ? 'background-color: #f8d7da;' : '';
-                        
-                        row.style.cssText = rowStyle;
-                        row.innerHTML = `
-                            <td>${subject.name}</td>
-                            <td>${phaseName}</td>
-                            <td>
-                                <button class="btn btn-small ${appState.activeTimer === taskId ? 'btn-danger' : 'btn-success'}" 
-                                        onclick="startTimer('${taskId}')">
-                                    ${appState.activeTimer === taskId ? '停止' : '開始'}
-                                </button>
-                                ${appState.activeTimer === taskId ? '<div class="timer-display">' + formatTimeHMS(appState.elapsedTime) + '</div>' : ''}
-                            </td>
-                            <td><strong style="color: #667eea;">${studyTime.toFixed(1)}h</strong></td>
-                            <td><strong style="color: #dc3545;">${remainingHours.toFixed(1)}h</strong></td>
-                            <td><span class="${priorityClass}">${subject.priority}</span></td>
-                            <td>
-                                <span class="${statusClass}">${statusText}</span>
-                                ${scheduleInfo ? '<br><small style="color: #666;">' + formatDate(startDate) + '～' + formatDate(endDate) + '</small>' : ''}
-                            </td>
-                        `;
-                        
-                        scheduleBody.appendChild(row);
-                    });
-                });
-            }
+                if (completedCount) {
+                    completedCount.textContent = appState.subjects.filter(s => s.status === "完了").length;
+                }
+                if (studyingCount) {
+                    studyingCount.textContent = appState.subjects.filter(s => s.status === "学習中").length;
+                }
+                if (highPriorityCount) {
+                    highPriorityCount.textContent = appState.subjects.filter(s => s.priority === "高").length;
+                }
 
-            // 科目カード表示
+                // 残り日数更新
+                const remainingDays = document.getElementById('remaining-days');
+                if (remainingDays) {
+                    const today = getCurrentDate();
+                    const studyEndDate = new Date('2024-10-05');
+                    const diffTime = studyEndDate - today;
+                    const days = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                    remainingDays.textContent = days;
+                }
+
+                // スケジュール表示を実行
+                renderScheduleTable();
+
+                // 科目カード表示を実行
+                renderSubjectCards();
+                
+                console.log('画面描画完了');
+                
+            } catch (error) {
+                console.error('画面描画エラー:', error);
+            }
+        }
+
+        // スケジュール表示を分離
+        function renderScheduleTable() {
+            const scheduleBody = document.getElementById('schedule-body');
+            if (!scheduleBody) {
+                console.error('schedule-body要素が見つかりません');
+                return;
+            }
+            
+            try {
+                scheduleBody.innerHTML = '';
+                console.log('スケジュール表示開始');
+                
+                appState.subjects.forEach((subject, subjectIndex) => {
+                    console.log('科目処理中:', subject.name);
+                    
+                    const phases = ["インプット", "復習", "午後対策"];
+                    
+                    for (let phaseIndex = 0; phaseIndex < phases.length; phaseIndex++) {
+                        try {
+                            const phase = phases[phaseIndex];
+                            const taskId = subject.name + '-' + (phaseIndex + 1);
+                            
+                            // デフォルト値を先に設定
+                            let startDate = '';
+                            let endDate = '';
+                            let phaseName = phase;
+                            let targetHours = subject.examWeight * 0.4;
+                            
+                            // スケジュール情報があれば上書き
+                            if (subject.schedule && Array.isArray(subject.schedule) && subject.schedule[phaseIndex]) {
+                                const scheduleInfo = subject.schedule[phaseIndex];
+                                if (scheduleInfo.start) startDate = scheduleInfo.start;
+                                if (scheduleInfo.end) endDate = scheduleInfo.end;
+                                if (scheduleInfo.phase) phaseName = scheduleInfo.phase;
+                                if (scheduleInfo.hours) targetHours = scheduleInfo.hours;
+                            }
+                            
+                            const studyTime = appState.studyTimes[taskId] || 0;
+                            const remainingHours = Math.max(0, targetHours - studyTime);
+                            
+                            // 現在のタスクかどうか判定
+                            let isCurrent = false;
+                            let isOverdueTask = false;
+                            
+                            if (startDate && endDate) {
+                                isCurrent = isCurrentTask(startDate, endDate);
+                                isOverdueTask = isOverdue(endDate);
+                            }
+                            
+                            // ステータス判定を修正
+                            let statusClass, statusText;
+                            if (subject.currentWeek > phaseIndex) {
+                                // 手動で完了マークされたタスク
+                                statusClass = 'status-completed';
+                                statusText = '完了';
+                            } else if (isOverdueTask) {
+                                // 期限を過ぎたタスク
+                                statusClass = 'status-pending';
+                                statusText = '期限超過';
+                            } else if (isCurrent) {
+                                // 現在実行中のタスク
+                                statusClass = 'status-studying';
+                                statusText = '進行中';
+                            } else {
+                                // まだ開始していないタスク
+                                statusClass = 'status-pending';
+                                statusText = '未完了';
+                            }
+                            
+                            const priorityClass = 'priority-' + (subject.priority === "高" ? 'high' : subject.priority === "中" ? 'medium' : 'low');
+                            
+                            // 行作成
+                            const row = document.createElement('tr');
+                            
+                            // 行の背景色を設定
+                            if (isCurrent) {
+                                row.style.backgroundColor = '#fff3cd'; // 進行中は黄色
+                            } else if (isOverdueTask && subject.currentWeek <= phaseIndex) {
+                                row.style.backgroundColor = '#f8d7da'; // 期限超過は赤色
+                            } else if (subject.currentWeek > phaseIndex) {
+                                row.style.backgroundColor = '#d4edda'; // 完了は緑色
+                            }
+                            
+                            const isTimerActive = appState.activeTimer === taskId;
+                            const timerButtonClass = isTimerActive ? 'btn-danger' : 'btn-success';
+                            const timerButtonText = isTimerActive ? '停止' : '開始';
+                            const timerDisplay = isTimerActive ? `<div class="timer-display">${formatTimeHMS(appState.elapsedTime)}</div>` : '';
+                            
+                            const dateRange = (startDate && endDate) ? `<br><small style="color: #666;">${formatDate(startDate)}～${formatDate(endDate)}</small>` : '';
+                            
+                            row.innerHTML = `
+                                <td>${subject.name}</td>
+                                <td>${phaseName}</td>
+                                <td>
+                                    <button class="btn btn-small ${timerButtonClass}" onclick="startTimer('${taskId}')">
+                                        ${timerButtonText}
+                                    </button>
+                                    ${timerDisplay}
+                                </td>
+                                <td><strong style="color: #667eea;">${studyTime.toFixed(1)}h</strong></td>
+                                <td><strong style="color: #dc3545;">${remainingHours.toFixed(1)}h</strong> / ${targetHours}h</td>
+                                <td><span class="${priorityClass}">${subject.priority}</span></td>
+                                <td>
+                                    <span class="${statusClass}">${statusText}</span>
+                                    ${dateRange}
+                                </td>
+                            `;
+                            
+                            scheduleBody.appendChild(row);
+                            
+                        } catch (rowError) {
+                            console.error('行作成エラー:', rowError, subject.name, phaseIndex);
+                        }
+                    }
+                });
+                
+                console.log('スケジュール表示完了');
+                
+            } catch (error) {
+                console.error('スケジュール表示エラー:', error);
+                scheduleBody.innerHTML = '<tr><td colspan="7">スケジュールの表示でエラーが発生しました</td></tr>';
+            }
+        }
+
+        // 科目カード表示を分離
+        function renderSubjectCards() {
             const subjectsGrid = document.getElementById('subjects-grid');
-            if (subjectsGrid) {
+            if (!subjectsGrid) {
+                console.error('subjects-grid要素が見つかりません');
+                return;
+            }
+            
+            try {
                 subjectsGrid.innerHTML = '';
                 
                 appState.subjects.forEach(subject => {
@@ -804,9 +884,11 @@
                     
                     subjectsGrid.appendChild(card);
                 });
+                
+            } catch (error) {
+                console.error('科目カード表示エラー:', error);
+                subjectsGrid.innerHTML = '<div>科目の表示でエラーが発生しました</div>';
             }
-            
-            console.log('画面描画完了');
         }
 
         // タイマー更新
@@ -819,14 +901,34 @@
 
         // 初期化
         function init() {
-            console.log('アプリケーション初期化');
-            loadData();
-            renderApp();
+            console.log('アプリケーション初期化開始');
             
-            // タイマー更新を1秒ごとに実行
-            setInterval(updateTimer, 1000);
-            
-            console.log('初期化完了');
+            try {
+                loadData();
+                console.log('データ読み込み完了, 科目数:', appState.subjects.length);
+                
+                renderApp();
+                console.log('初回描画完了');
+                
+                // タイマー更新を1秒ごとに実行
+                setInterval(updateTimer, 1000);
+                
+                console.log('初期化完了');
+            } catch (error) {
+                console.error('初期化エラー:', error);
+                
+                // エラー時のフォールバック表示
+                const appElement = document.getElementById('app');
+                if (appElement) {
+                    appElement.innerHTML = `
+                        <div style="padding: 20px; background: white; margin: 20px; border-radius: 8px;">
+                            <h2>エラーが発生しました</h2>
+                            <p>ページを再読み込みしてください。</p>
+                            <button onclick="location.reload()">再読み込み</button>
+                        </div>
+                    `;
+                }
+            }
         }
 
         // ページ読み込み完了後に初期化
